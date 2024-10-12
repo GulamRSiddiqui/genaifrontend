@@ -1,0 +1,55 @@
+// useAuth.js
+import { useEffect, useState } from 'react';
+//import jwt_decode from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode'; // Correct import
+import axios from 'axios';
+
+
+const TOKEN_REFRESH_TIME = 5 * 60 * 1000; // 5 minutes before expiration
+
+export const useAuth = () => {
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [email, setEmail] = useState(null);
+    const accessToken = localStorage.getItem('access_token');
+    const refreshToken = localStorage.getItem('refresh_token');
+
+    useEffect(() => {
+        const checkAuth = () => {
+            if (accessToken) {
+                const decoded = jwtDecode(accessToken);
+                const expirationTime = decoded.exp * 1000; // Convert to milliseconds
+                const currentTime = Date.now();
+
+                if (expirationTime > currentTime) {
+                    setIsAuthenticated(true);
+                    setEmail(decoded.email);
+                } else {
+                    // Token expired, try to refresh
+                    refreshAccessToken();
+                }
+            }
+        };
+
+        checkAuth();
+    }, [accessToken]);
+
+    const refreshAccessToken = async () => {
+        try {
+            const response = await axios.post('http://127.0.0.1:8001/api/token/refresh/', {
+                refresh: refreshToken,
+            });
+            const { access } = response.data;
+            localStorage.setItem('access_token', access);
+            setIsAuthenticated(true);
+            const decoded = jwtDecode(access);
+            setEmail(decoded.email);
+        } catch (error) {
+            console.error('Failed to refresh token:', error);
+            setIsAuthenticated(false);
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+        }
+    };
+
+    return { isAuthenticated, email };
+};

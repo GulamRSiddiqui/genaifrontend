@@ -1,0 +1,26 @@
+// eslint-disable-next-line
+import { Routes,Route, Navigate } from "react-router-dom";
+import {useContext} from 'react';
+import { useAuthContext } from "../context/AuthContext";
+
+
+const PrivateRoute = ({children, ...rest}) => {
+    console.log('Private log works!')
+    const isAuthenticated = useContext(useAuthContext);
+
+
+     
+    // If not authenticated, redirect to the login page
+     if (!isAuthenticated) {
+        return <Navigate to="/login" />;
+    }
+    // If authenticated, render the children
+    return children;
+//   return (
+//     <Routes>
+//         <Route {...rest}>{isAuthenticated ? children : <Navigate to="/login" />}</Route>
+//     </Routes>
+//   )
+}
+
+export default PrivateRoute;

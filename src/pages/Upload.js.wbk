@@ -1,0 +1,62 @@
+// src/components/Upload.js
+import React, { useState } from 'react';
+import { Button, TextField, Typography, Container } from '@mui/material';
+import axios from 'axios';
+
+const Upload = () => {
+  const [file, setFile] = useState(null);
+
+  const handleFileChange = (event) => {
+    setFile(event.target.files[0]);
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (!file) {
+      alert('Please select a file to upload.');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("image", file, file.name);
+
+    try {
+        const accessToken = localStorage.getItem('accessToken'); // Assuming you store the token in localStorage
+      const response = await axios.post("http://127.0.0.1:8001/api/Places", formData, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`, // Update with your token
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      console.log(response.data);
+    } catch (error) {
+      console.error('Error uploading the file:', error);
+    }
+  };
+
+  return (
+    <Container maxWidth="sm">
+      <Typography variant="h4" gutterBottom>
+        Upload Image
+      </Typography>
+      <form onSubmit={handleSubmit}>
+        <TextField
+          type="file"
+          onChange={handleFileChange}
+          fullWidth
+          inputProps={{ accept: 'image/*' }}
+        />
+        <Button
+          type="submit"
+          variant="contained"
+          color="primary"
+          sx={{ mt: 2 }}
+        >
+          Upload
+        </Button>
+      </form>
+    </Container>
+  );
+};
+
+export default Upload;
